@@ -8,6 +8,7 @@ class Register extends CI_Controller {
   public function index()
   {
     $this->load->view('register-form.php');
+
   }
   
   public function pay()
@@ -41,6 +42,7 @@ class Register extends CI_Controller {
                 'razorpay_payment_id' => $_POST['razorpay_payment_id'],
                 'razorpay_signature' => $_POST['razorpay_signature']
             );
+            
             $api->utility->verifyPaymentSignature($attributes);
         } catch(SignatureVerificationError $e) {
             $success = false;
@@ -48,15 +50,31 @@ class Register extends CI_Controller {
         }
     }
     if ($success === true) {
-       
-        redirect(base_url().'index.php/register/success');
+         $this->insertData($attributes);
+        redirect(base_url().'index.php/register/success/');
     }
     else {
         redirect(base_url().'index.php/register/paymentFailed');
     }
 }
 
+public function insertData($data)
+  {
+    $this->load->database('cirzp');
 
+    $orderid = $data['razorpay_order_id'];
+    $paymentid = $data['razorpay_payment_id'];
+    $signature = $data['razorpay_signature'];
+ 
+    $registrationData = array(
+      'order_id' => $orderid,
+      'paymentid' => $paymentid,
+      'signature' => $signature,
+     
+    );
+    $this->db->insert('paymentgateway', $registrationData); 
+  
+  }
  
   public function prepareData($amount,$razorpayOrderId)
   {
